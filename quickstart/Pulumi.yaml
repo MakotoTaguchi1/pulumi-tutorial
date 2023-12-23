@@ -1,10 +1,17 @@
 name: quickstart
 runtime: yaml
 description: Test
-outputs:
-  # Export the name of the bucket
-  bucketName: ${my-bucket.id}
+
 resources:
-  # Create an AWS resource (S3 Bucket)
   my-bucket:
     type: aws:s3:Bucket
+
+  index.html:
+    type: aws:s3:BucketObject
+    properties:
+      bucket: ${my-bucket}
+      source:
+        fn::fileAsset: ./index.html
+
+outputs:
+  bucketName: ${my-bucket.id}
