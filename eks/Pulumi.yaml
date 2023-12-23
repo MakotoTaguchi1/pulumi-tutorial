@@ -62,6 +62,26 @@ resources:
         - ${eksRole} # Use the eksRole as a reference in the array
       skipDefaultNodeGroup: True
 
+  myInstanceProfile:
+    type: aws:iam/instanceProfile:InstanceProfile
+    properties:
+      name: my-instance-profile
+
+  # Assuming the cluster was already created and is named 'myEksCluster'
+  # Create a managed node group for the existing EKS cluster
+  myNodeGroup:
+    type: eks:NodeGroup # or 'eks:ManagedNodeGroup' for a managed node group
+    properties:
+      cluster: ${eksCluster} # Reference to the existing EKS cluster
+      # nodeGroupName: "my-node-group"
+      desiredCapacity: 2
+      minSize: 1
+      maxSize: 3
+      instanceType: "t2.nano" # Specify the instance type for the worker nodes
+      nodeSubnetIds: ${myVpc.privateSubnetIds}
+      # Provide the ARN of the instance profile (role) for node group
+      instanceProfile: ${myInstanceProfile}
+
 # Outputs that reference properties must use 'metadata' to access resource properties.
 outputs:
   kubeconfig: ${eksCluster.kubeconfig}        # Outputs the kubeconfig of the EKS cluster.
@@ -69,3 +89,6 @@ outputs:
   vpcId: ${myVpc.vpcId}
   privateSubnetIds: ${myVpc.privateSubnetIds}
   publicSubnetIds: ${myVpc.publicSubnetIds}
+  nodeGroupUrn: ${myNodeGroup.urn} # The URN is the unique identifier for the resource
+  instanceProfileArn: ${myInstanceProfile.arn} # ARN of the instance profile
+
