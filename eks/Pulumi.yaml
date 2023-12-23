@@ -1,0 +1,62 @@
+name: aws-eks-ec2-private
+runtime: yaml
+description: An AWS EKS cluster with EC2 instances on private subnets.
+
+resources:
+  # Create a new VPC with private subnets.
+  vpc:
+    type: awsx:ec2:Vpc
+    properties:
+      cidrBlock: "10.0.0.0/16"
+      numberOfAvailabilityZones: 2
+      subnetSpecs:
+        - type: Private
+          cidrMask: 24
+
+  # Create an IAM role for the EKS cluster.
+  eksRole:
+    type: aws:iam:Role
+    properties:
+      assumeRolePolicy: >
+        {
+          "Version": "2012-10-17",
+          "Statement": [{
+            "Effect": "Allow",
+            "Principal": {
+              "Service": "eks.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole"
+          }]
+        }
+
+  # Attach required policies to the IAM role.
+  eksPolicyAttachment:
+    type: aws:iam:RolePolicyAttachment
+    properties:
+      role: ${eksRole.name}
+      policyArn: "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+
+  # Create an EKS cluster with the created VPC and IAM role.
+  eksCluster:
+    type: eks:Cluster
+    properties:
+      vpcId: ${vpc.id}
+      privateSubnetIds: ${vpc.privateSubnetIds}
+      instanceType: "t3.nano"
+      desiredCapacity: 2
+      minSize: 1
+      maxSize: 3
+      roleMapping:
+        - groups:
+            - "system:bootstrappers"
+            - "system:nodes"
+          roleArn: ${eksRole.arn}
+          username: "system:node:{{EC2PrivateDNSName}}"
+      instanceRole: ${eksRole.arn}
+      skipDefaultNodeGroup: True
+
+outputs:
+  kubeconfig: ${eksCluster.kubeconfig}
+  clusterId: ${eksCluster.id}
+  vpcId: ${vpc.id}
+  privateSubnetIds: ${vpc.privateSubnetIds}
