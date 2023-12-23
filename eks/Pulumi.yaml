@@ -4,7 +4,7 @@ description: An AWS EKS cluster with EC2 instances on private subnets.
 
 resources:
   # Create a new VPC with private subnets.
-  vpc:
+  myVpc:
     type: awsx:ec2:Vpc
     properties:
       cidrBlock: "10.0.0.0/16"
@@ -40,8 +40,8 @@ resources:
   eksCluster:
     type: eks:Cluster
     properties:
-      vpcId: ${vpc.id}
-      privateSubnetIds: ${vpc.privateSubnetIds}
+      vpcId: ${myVpc.vpcId}
+      privateSubnetIds: ${myVpc.privateSubnetIds}
       instanceType: "t3.nano"
       desiredCapacity: 2
       minSize: 1
@@ -57,6 +57,6 @@ resources:
 
 outputs:
   kubeconfig: ${eksCluster.kubeconfig}
-  clusterId: ${eksCluster.id}
-  vpcId: ${vpc.id}
-  privateSubnetIds: ${vpc.privateSubnetIds}
+  clusterName: ${eksCluster.name}
+  vpcId: ${myVpc.vpcId}
+  privateSubnetIds: ${myVpc.privateSubnetIds}
