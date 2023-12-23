@@ -7,11 +7,17 @@ resources:
   myVpc:
     type: awsx:ec2:Vpc
     properties:
-      cidrBlock: "10.0.0.0/16"
-      numberOfAvailabilityZones: 2
+      # Specify the NAT gateway configuration using the 'natGateways' property directly
+      natGateways:
+        # Replace 'strategy: string' with an actual strategy value, e.g., 'Single' or provide specific NAT Gateway configurations
+        strategy: "Single" # or use a specific number to create that many gateways
       subnetSpecs:
-        - type: Private
-          cidrMask: 24
+        - type: "Public"
+        - type: "Private"
+      # Set additional properties as needed such as DNS support and availability zones
+      enableDnsHostnames: true
+      availabilityZoneNames: ["ap-northeast-1a", "ap-northeast-1c"]
+
 
   # Create an IAM role for the EKS cluster.
   eksRole:
@@ -62,3 +68,4 @@ outputs:
   # clusterName: ${eksCluster.name}             # Outputs the name of the EKS cluster.
   vpcId: ${myVpc.vpcId}
   privateSubnetIds: ${myVpc.privateSubnetIds}
+  publicSubnetIds: ${myVpc.publicSubnetIds}
