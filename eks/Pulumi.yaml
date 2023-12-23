@@ -17,7 +17,7 @@ resources:
   eksRole:
     type: aws:iam:Role
     properties:
-      assumeRolePolicy: >
+      assumeRolePolicy: |
         {
           "Version": "2012-10-17",
           "Statement": [{
@@ -46,17 +46,19 @@ resources:
       desiredCapacity: 2
       minSize: 1
       maxSize: 3
-      roleMapping:
+      roleMappings:
         - groups:
             - "system:bootstrappers"
             - "system:nodes"
           roleArn: ${eksRole.arn}
           username: "system:node:{{EC2PrivateDNSName}}"
-      instanceRole: ${eksRole.arn}
+      instanceRoles:
+        - ${eksRole} # Use the eksRole as a reference in the array
       skipDefaultNodeGroup: True
 
+# Outputs that reference properties must use 'metadata' to access resource properties.
 outputs:
-  kubeconfig: ${eksCluster.kubeconfig}
-  clusterName: ${eksCluster.name}
+  kubeconfig: ${eksCluster.kubeconfig}        # Outputs the kubeconfig of the EKS cluster.
+  # clusterName: ${eksCluster.name}             # Outputs the name of the EKS cluster.
   vpcId: ${myVpc.vpcId}
   privateSubnetIds: ${myVpc.privateSubnetIds}
