@@ -5,13 +5,28 @@ description: Test
 resources:
   my-bucket:
     type: aws:s3:Bucket
-
-  index.html:
-    type: aws:s3:BucketObject
     properties:
-      bucket: ${my-bucket}
-      source:
-        fn::fileAsset: ./index.html
+      lifecycleRules:
+        - enabled: true
+          expiration:
+            days: 90
+          id: test-rule
+          prefix: log/
+          tags:
+            autoclean: 'true'
+            rule: log
+          transitions:
+            - days: 30
+              storageClass: STANDARD_IA
+            - days: 60
+              storageClass: GLACIER
 
-outputs:
-  bucketName: ${my-bucket.id}
+#   index.html:
+#     type: aws:s3:BucketObject
+#     properties:
+#       bucket: ${my-bucket}
+#       source:
+#         fn::fileAsset: ./index.html
+
+# outputs:
+#   bucketName: ${my-bucket.id}
